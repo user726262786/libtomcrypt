@@ -261,14 +261,14 @@ static int s_ecc_issue108(void)
    /* ECC-224 AKA SECP224R1 */
    if ((err = ecc_find_curve("SECP224R1", &dp)) != CRYPT_OK)              { goto done; }
    /* read A */
-   if ((err = mp_read_radix(a, (char *)dp->A,  16)) != CRYPT_OK)          { goto done; }
+   if ((err = mp_read_radix(a, dp->A,  16)) != CRYPT_OK)          { goto done; }
    /* read modulus */
-   if ((err = mp_read_radix(modulus, (char *)dp->prime, 16)) != CRYPT_OK) { goto done; }
+   if ((err = mp_read_radix(modulus, dp->prime, 16)) != CRYPT_OK) { goto done; }
    /* read order */
-   if ((err = mp_read_radix(order, (char *)dp->order, 16)) != CRYPT_OK)   { goto done; }
+   if ((err = mp_read_radix(order, dp->order, 16)) != CRYPT_OK)   { goto done; }
    /* read Q */
-   if ((err = mp_read_radix(Q->x, (char *)"EA3745501BBC6A70BBFDD8AEEDB18CF5073C6DC9AA7CBB5915170D60", 16)) != CRYPT_OK) { goto done; }
-   if ((err = mp_read_radix(Q->y, (char *)"6C9CB8E68AABFEC989CAC5E2326E0448B7E69C3E56039BA21A44FDAC", 16)) != CRYPT_OK) { goto done; }
+   if ((err = mp_read_radix(Q->x, "EA3745501BBC6A70BBFDD8AEEDB18CF5073C6DC9AA7CBB5915170D60", 16)) != CRYPT_OK) { goto done; }
+   if ((err = mp_read_radix(Q->y, "6C9CB8E68AABFEC989CAC5E2326E0448B7E69C3E56039BA21A44FDAC", 16)) != CRYPT_OK) { goto done; }
    mp_set(Q->z, 1);
    /* calculate nQ */
    if ((err = ltc_mp.ecc_ptmul(order, Q, Result, a, modulus, 1)) != CRYPT_OK)  { goto done; }
@@ -353,9 +353,9 @@ static int s_ecc_test_mp(void)
    err = CRYPT_OK;
 
    for (i = 0; ltc_ecc_curves[i].prime != NULL; i++) {
-      DO(mp_read_radix(a, (char *)ltc_ecc_curves[i].A,  16));
-      DO(mp_read_radix(modulus, (char *)ltc_ecc_curves[i].prime, 16));
-      DO(mp_read_radix(order, (char *)ltc_ecc_curves[i].order, 16));
+      DO(mp_read_radix(a, ltc_ecc_curves[i].A,  16));
+      DO(mp_read_radix(modulus, ltc_ecc_curves[i].prime, 16));
+      DO(mp_read_radix(order, ltc_ecc_curves[i].order, 16));
 
       /* is prime actually prime? */
       DO(mp_prime_is_prime(modulus, 8, &primality));
@@ -373,8 +373,8 @@ static int s_ecc_test_mp(void)
          printf("Order failed prime check: %s\n", buf);
       }
 
-      DO(mp_read_radix(G->x, (char *)ltc_ecc_curves[i].Gx, 16));
-      DO(mp_read_radix(G->y, (char *)ltc_ecc_curves[i].Gy, 16));
+      DO(mp_read_radix(G->x, ltc_ecc_curves[i].Gx, 16));
+      DO(mp_read_radix(G->y, ltc_ecc_curves[i].Gy, 16));
       mp_set(G->z, 1);
 
       /* then we should have G == (order + 1)G */

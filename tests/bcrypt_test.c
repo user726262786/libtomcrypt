@@ -125,7 +125,7 @@ int bcrypt_test(void)
       l = t->keylen;
       XMEMSET(key, 0, sizeof(key));
       DO(bcrypt_pbkdf_openbsd(t->password, t->passlen, (unsigned char*)t->salt, t->saltlen, t->rounds, idx, key, &l));
-      DO(do_compare_testvector(key, l, (unsigned char*)t->key, t->keylen, "OpenBSD testvectors", i));
+      DO(do_compare_testvector(key, l, t->key, t->keylen, "OpenBSD testvectors", i));
 
 #if defined(LTC_TEST_DBG) && LTC_TEST_DBG > 1
       printf("BCRYPT test #%d OK\n", i);
