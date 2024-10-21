@@ -40,6 +40,7 @@ option(WITH_TFM "Build with support for tomsfastmath" FALSE)
 option(WITH_GMP "Build with support for GNU Multi Precision Arithmetic Library" FALSE)
 set(MPI_PROVIDER "LTM" CACHE STRING "Build tests and demos against 'LTM', 'TFM' or 'GMP', default is LTM")
 option(BUILD_SHARED_LIBS "Build shared library and only the shared library if \"ON\", default is static" OFF)
+option(WITH_PTHREAD "Build with pthread support" FALSE)
 
 #-----------------------------------------------------------------------------
 # Add support for ccache if desired
@@ -164,8 +165,8 @@ if(WITH_LTM)
         target_compile_definitions(${PROJECT_NAME} PUBLIC USE_LTM)
     endif()
     target_link_libraries(${PROJECT_NAME} PUBLIC libtommath)
-    list(APPEND LTC_MPI_PROVIDERS_CFLAGS -DLTM_DESC)
-    list(APPEND LTC_MPI_PROVIDERS_LIBS -ltommath)
+    list(APPEND LTC_PKG_CONFIG_CFLAGS -DLTM_DESC)
+    list(APPEND LTC_PKG_CONFIG_LIBS -ltommath)
     list(APPEND LTC_DEBIAN_MPI_PROVIDER_DEPENDS libtommath-dev)
 endif()
 # tomsfastmath
@@ -177,8 +178,8 @@ if(WITH_TFM)
         target_compile_definitions(${PROJECT_NAME} PUBLIC USE_TFM)
     endif()
     target_link_libraries(${PROJECT_NAME} PUBLIC tomsfastmath)
-    list(APPEND LTC_MPI_PROVIDERS_CFLAGS -DTFM_DESC)
-    list(APPEND LTC_MPI_PROVIDERS_LIBS -ltfm)
+    list(APPEND LTC_PKG_CONFIG_CFLAGS -DTFM_DESC)
+    list(APPEND LTC_PKG_CONFIG_LIBS -ltfm)
     list(APPEND LTC_DEBIAN_MPI_PROVIDER_DEPENDS libtfm-dev)
 endif()
 # GNU MP
@@ -190,13 +191,30 @@ if(WITH_GMP)
         target_compile_definitions(${PROJECT_NAME} PUBLIC USE_GMP)
     endif()
     target_link_libraries(${PROJECT_NAME} PUBLIC ${GMP_LIBRARIES})
-    list(APPEND LTC_MPI_PROVIDERS_CFLAGS -DGMP_DESC)
-    list(APPEND LTC_MPI_PROVIDERS_LIBS -lgmp)
+    list(APPEND LTC_PKG_CONFIG_CFLAGS -DGMP_DESC)
+    list(APPEND LTC_PKG_CONFIG_LIBS -lgmp)
     list(APPEND LTC_DEBIAN_MPI_PROVIDER_DEPENDS libgmp-dev)
 endif()
 
-list(JOIN LTC_MPI_PROVIDERS_CFLAGS " " MPI_PROVIDERS_CFLAGS)
-list(JOIN LTC_MPI_PROVIDERS_LIBS " " MPI_PROVIDERS_LIBS)
+
+#-----------------------------------------------------------------------------
+# other options
+#-----------------------------------------------------------------------------
+
+if(WITH_PTHREAD)
+    set(THREADS_PREFER_PTHREAD_FLAG ON)
+    find_package(Threads REQUIRED)
+    if(CMAKE_USE_PTHREADS_INIT)
+        target_compile_definitions(${PROJECT_NAME} PUBLIC LTC_PTHREAD)
+        target_link_libraries(${PROJECT_NAME} PRIVATE Threads::Threads)
+        list(APPEND LTC_PKG_CONFIG_CFLAGS -DLTC_PTHREAD)
+    else()
+        message(SEND_ERROR "pthreads not supported. Reconfigure ${PROJECT_NAME} with -DWITH_PTHREAD=OFF.")
+    endif()
+endif()
+
+list(JOIN LTC_PKG_CONFIG_CFLAGS " " PKG_CONFIG_CFLAGS)
+list(JOIN LTC_PKG_CONFIG_LIBS " " PKG_CONFIG_LIBS)
 list(JOIN LTC_DEBIAN_MPI_PROVIDER_DEPENDS " " DEBIAN_MPI_PROVIDER_DEPENDS)
 
 #-----------------------------------------------------------------------------

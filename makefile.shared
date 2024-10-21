@@ -55,17 +55,24 @@ endif
 include makefile_include.mk
 
 ifneq ($(findstring -DLTM_DESC,$(LTC_CFLAGS)),)
-LTC_MPI_PROVIDERS_CFLAGS += -DLTM_DESC
-LTC_MPI_PROVIDERS_LIBS += -ltommath
+LTC_PKG_CONFIG_CFLAGS += -DLTM_DESC
+LTC_PKG_CONFIG_LIBS += -ltommath
 endif
 ifneq ($(findstring -DTFM_DESC,$(LTC_CFLAGS)),)
-LTC_MPI_PROVIDERS_CFLAGS += -DTFM_DESC
-LTC_MPI_PROVIDERS_LIBS += -ltfm
+LTC_PKG_CONFIG_CFLAGS += -DTFM_DESC
+LTC_PKG_CONFIG_LIBS += -ltfm
 endif
 ifneq ($(findstring -DGMP_DESC,$(LTC_CFLAGS)),)
-LTC_MPI_PROVIDERS_CFLAGS += -DGMP_DESC
-LTC_MPI_PROVIDERS_LIBS += -lgmp
+LTC_PKG_CONFIG_CFLAGS += -DGMP_DESC
+LTC_PKG_CONFIG_LIBS += -lgmp
 endif
+ifneq ($(findstring -DLTC_PTHREAD,$(LTC_CFLAGS)),)
+LTC_PKG_CONFIG_CFLAGS += -DLTC_PTHREAD
+endif
+
+# set PKG_CONFIG_CFLAGS and PKG_CONFIG_LIBS to what your environment requires
+LTC_PKG_CONFIG_CFLAGS += $(PKG_CONFIG_CFLAGS)
+LTC_PKG_CONFIG_LIBS += $(PKG_CONFIG_LIBS)
 
 #ciphers come in two flavours... enc+dec and enc
 src/ciphers/aes/aes_enc.o: src/ciphers/aes/aes.c src/ciphers/aes/aes_tab.c
@@ -95,8 +102,8 @@ $(foreach demo, $(strip $(DEMOS)), $(eval $(call DEMO_template,$(demo))))
 install: $(call print-help,install,Installs the library + headers + pkg-config file) .common_install
 	sed -e 's,^prefix=.*,prefix=$(PREFIX),' -e 's,^Version:.*,Version: $(VERSION_PC),' -e 's,^libdir=.*,libdir=$(LIBPATH),' \
 		-e 's,^includedir=.*,includedir=$(INCPATH),' \
-		-e 's,@MPI_PROVIDERS_LIBS@,$(LTC_MPI_PROVIDERS_LIBS),' \
-		-e 's,@MPI_PROVIDERS_CFLAGS@,$(LTC_MPI_PROVIDERS_CFLAGS),' libtomcrypt.pc.in > libtomcrypt.pc
+		-e 's,@PKG_CONFIG_LIBS@,$(LTC_PKG_CONFIG_LIBS),' \
+		-e 's,@PKG_CONFIG_CFLAGS@,$(LTC_PKG_CONFIG_CFLAGS),' libtomcrypt.pc.in > libtomcrypt.pc
 	install -p -d $(DESTDIR)$(LIBPATH)/pkgconfig
 	install -p -m 644 libtomcrypt.pc $(DESTDIR)$(LIBPATH)/pkgconfig/
 
