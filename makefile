@@ -141,7 +141,3 @@ coverage: $(call print-help,coverage,Create code-coverage of the library - but b
 
 # cleans everything - coverage output and standard 'clean'
 cleancov: cleancov-clean clean
-
-# ref:         $Format:%D$
-# git commit:  $Format:%H$
-# commit time: $Format:%ai$
