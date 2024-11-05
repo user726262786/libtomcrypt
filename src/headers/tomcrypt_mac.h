@@ -460,7 +460,7 @@ int ccm_test(void);
 
 #endif /* LTC_CCM_MODE */
 
-#if defined(LRW_MODE) || defined(LTC_GCM_MODE)
+#if defined(LTC_LRW_MODE) || defined(LTC_GCM_MODE)
 void gcm_gf_mult(const unsigned char *a, const unsigned char *b, unsigned char *c);
 #endif
 
