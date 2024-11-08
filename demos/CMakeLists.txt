@@ -3,6 +3,7 @@
 #-----------------------------------------------------------------------------
 option(BUILD_USEFUL_DEMOS "Build useful demos (hashsum)" FALSE)
 option(BUILD_USABLE_DEMOS "Build usable demos (ltcrypt sizes constants pem-info)" FALSE)
+option(BUILD_TEST_DEMOS "Build test demos (small tv_gen)" FALSE)
 
 #-----------------------------------------------------------------------------
 # Useful demos
@@ -10,7 +11,7 @@ option(BUILD_USABLE_DEMOS "Build usable demos (ltcrypt sizes constants pem-info)
 
 if(BUILD_USEFUL_DEMOS)
 
-    list(APPEND ALL_DEMOS_TARGETS hashsum tv_gen)
+    list(APPEND ALL_DEMOS_TARGETS hashsum)
 
     # hashsum
     add_executable(hashsum
@@ -18,15 +19,6 @@ if(BUILD_USEFUL_DEMOS)
     )
 
     target_link_libraries(hashsum PRIVATE
-        ${PROJECT_NAME}
-    )
-
-    # tv_gen
-    add_executable(tv_gen
-        ${CMAKE_CURRENT_SOURCE_DIR}/tv_gen.c
-    )
-
-    target_link_libraries(tv_gen PRIVATE
         ${PROJECT_NAME}
     )
 
@@ -73,6 +65,34 @@ if(BUILD_USABLE_DEMOS)
     )
 
     target_link_libraries(pem-info PRIVATE
+        ${PROJECT_NAME}
+    )
+
+endif()
+
+#-----------------------------------------------------------------------------
+# Test demos
+#-----------------------------------------------------------------------------
+
+if(BUILD_TEST_DEMOS)
+
+    list(APPEND ALL_DEMOS_TARGETS tv_gen)
+
+    # small
+    add_executable(small
+        ${CMAKE_CURRENT_SOURCE_DIR}/small.c
+    )
+
+    target_link_libraries(small PRIVATE
+        ${PROJECT_NAME}
+    )
+
+    # tv_gen
+    add_executable(tv_gen
+        ${CMAKE_CURRENT_SOURCE_DIR}/tv_gen.c
+    )
+
+    target_link_libraries(tv_gen PRIVATE
         ${PROJECT_NAME}
     )
 
