@@ -11,7 +11,8 @@
 
 #define LTC_PAD_MASK       (0xF000U)
 
-#if defined(ENDIAN_64BITWORD)
+/* only real 64bit, not x32 */
+#if defined(ENDIAN_64BITWORD) && !defined(ENDIAN_64BITWORD_X32)
    #define CONSTPTR(n) CONST64(n)
 #else
    #define CONSTPTR(n) n ## uL
