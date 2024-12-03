@@ -1325,7 +1325,21 @@ static void time_encmacs(void)
    time_encmacs_(32);
 }
 
-#define LTC_TEST_FN(f)  { f, #f }
+static void LTC_NORETURN die(int status)
+{
+   FILE* o = status == EXIT_SUCCESS ? stdout : stderr;
+   fprintf(o,
+         "Usage: timing [<-h|-l|alg>] [mpi]\n\n"
+         "Run timing tests of all built-in algorithms, or only the one given in <alg>.\n\n"
+         "\talg\tThe algorithm to test. Use the '-l' option to check for valid values.\n"
+         "\tmpi\tThe MPI provider to use.\n"
+         "\t-l\tList all built-in algorithms that can be timed.\n"
+         "\t-h\tThe help you're looking at.\n"
+   );
+   exit(status);
+}
+
+#define LTC_TEST_FN(f)  { time_ ## f, #f }
 int main(int argc, char **argv)
 {
 int err;
@@ -1335,25 +1349,36 @@ const struct
    void (*fn)(void);
    const char* name;
 } test_functions[] = {
-   LTC_TEST_FN(time_keysched),
-   LTC_TEST_FN(time_cipher_ecb),
-   LTC_TEST_FN(time_cipher_cbc),
-   LTC_TEST_FN(time_cipher_ctr),
-   LTC_TEST_FN(time_cipher_lrw),
-   LTC_TEST_FN(time_hash),
-   LTC_TEST_FN(time_macs),
-   LTC_TEST_FN(time_encmacs),
-   LTC_TEST_FN(time_prng),
-   LTC_TEST_FN(time_mult),
-   LTC_TEST_FN(time_sqr),
-   LTC_TEST_FN(time_rsa),
-   LTC_TEST_FN(time_dsa),
-   LTC_TEST_FN(time_ecc),
-   LTC_TEST_FN(time_dh),
+   LTC_TEST_FN(keysched),
+   LTC_TEST_FN(cipher_ecb),
+   LTC_TEST_FN(cipher_cbc),
+   LTC_TEST_FN(cipher_ctr),
+   LTC_TEST_FN(cipher_lrw),
+   LTC_TEST_FN(hash),
+   LTC_TEST_FN(macs),
+   LTC_TEST_FN(encmacs),
+   LTC_TEST_FN(prng),
+   LTC_TEST_FN(mult),
+   LTC_TEST_FN(sqr),
+   LTC_TEST_FN(rsa),
+   LTC_TEST_FN(dsa),
+   LTC_TEST_FN(ecc),
+   LTC_TEST_FN(dh),
 };
 char *single_test = NULL;
 unsigned int i;
 const char* mpi_provider = NULL;
+
+if (argc > 1) {
+   if (strstr(argv[1], "-h")) {
+      die(EXIT_SUCCESS);
+   } else if (strstr(argv[1], "-l")) {
+      for (i = 0; i < sizeof(test_functions)/sizeof(test_functions[0]); ++i) {
+         printf("%s\n", test_functions[i].name);
+      }
+      exit(0);
+   }
+}
 
 init_timer();
 register_all_ciphers();
@@ -1374,7 +1399,9 @@ register_all_prngs();
       mpi_provider = argv[2];
    }
 
-   crypt_mp_init(mpi_provider);
+   if (crypt_mp_init(mpi_provider) != CRYPT_OK) {
+      fprintf(stderr, "Init of MPI provider \"%s\" failed\n", mpi_provider ? mpi_provider : "(null)");
+   }
 
 if ((err = rng_make_prng(128, find_prng("yarrow"), &yarrow_prng, NULL)) != CRYPT_OK) {
    fprintf(stderr, "rng_make_prng failed: %s\n", error_to_string(err));

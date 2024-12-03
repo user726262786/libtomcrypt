@@ -41,10 +41,17 @@ static void die(int status)
 {
    unsigned long w, x;
    FILE* o = status == EXIT_SUCCESS ? stdout : stderr;
-   fprintf(o, "usage: %s -a algorithm [-c] [file...]\n\n", hashsum);
-   fprintf(o, "\t-c\tCheck the hash(es) of the file(s) written in [file].\n");
-   fprintf(o, "\t\t(-a not required)\n");
-   fprintf(o, "\nAlgorithms:\n\t");
+   fprintf(o,
+           "Usage: %s [-a <algorithm>...] [-c|-h] [<file>...]\n\n"
+           "\t-c\tCheck the hash(es) of the file(s) written in <file>.\n"
+           "\t\tNote: -a is not required when checking the hash(es).\n"
+           "\t-h\tThis help\n\n"
+           "Examples:\n"
+           "\t%s -a sha1 file > file.sha1sum\n"
+           "\t%s -c file.sha1sum\n"
+           "\t%s -a sha1 -a sha256 -a sha512-256 file > file.hashsum\n"
+           "\t%s -c file.hashsum\n\n"
+           "Algorithms:\n\t", hashsum, hashsum, hashsum, hashsum, hashsum);
    w = 0;
    for (x = 0; hash_descriptor[x].name != NULL; x++) {
       w += fprintf(o, "%-14s", hash_descriptor[x].name);
@@ -67,7 +74,7 @@ static void printf_hex(unsigned char* hash_buffer, unsigned long w)
 
 static void check_file(int argn, int argc, char **argv)
 {
-   int err, failed, invalid;
+   int err, failed = 0, invalid = 0;
    unsigned char is_buffer[MAXBLOCKSIZE], should_buffer[MAXBLOCKSIZE];
    char buf[PATH_MAX + (MAXBLOCKSIZE * 3)];
    /* iterate through all files */
@@ -82,8 +89,6 @@ static void check_file(int argn, int argc, char **argv)
             perror(argv[argn]);
          exit(EXIT_FAILURE);
       }
-      failed = 0;
-      invalid = 0;
       /* read the file line by line */
       while((s = fgets(buf, sizeof(buf), f)) != NULL)
       {
@@ -163,7 +168,7 @@ ERR:
       }
       argn++;
    }
-   exit(EXIT_SUCCESS);
+   exit(failed == 0 && invalid == 0 ? EXIT_SUCCESS : EXIT_FAILURE);
 }
 
 int main(int argc, char **argv)
@@ -178,7 +183,7 @@ int main(int argc, char **argv)
    /* You need to register algorithms before using them */
    register_all_ciphers();
    register_all_hashes();
-   if (argc > 1 && (strcmp("-h", argv[1]) == 0 || strcmp("--help", argv[1]) == 0)) {
+   if (argc > 1 && strstr(argv[1], "-h")) {
       die(EXIT_SUCCESS);
    }
    if (argc < 3) {

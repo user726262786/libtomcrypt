@@ -16,9 +16,15 @@
 #include <sys/types.h>
 #include <dirent.h>
 #include <string.h>
-#include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
+
+#ifndef LTC_GCM_MODE
+int main(void)
+{
+   return -1;
+}
+#else
 
 #include "gcm-file/gcm_filehandle.c"
 #include "gcm-file/gcm_file.c"
@@ -58,33 +64,7 @@ OUT:
    return 0;
 }
 
-/* https://stackoverflow.com/a/23898449 */
-static void scan_hex(const char* str, uint8_t* bytes, size_t blen)
-{
-   uint8_t  pos;
-   uint8_t  idx0;
-   uint8_t  idx1;
-
-   const uint8_t hashmap[] =
-   {
-     0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, /* 01234567 */
-     0x08, 0x09, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, /* 89:;<=>? */
-     0x00, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x00, /* @ABCDEFG */
-     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, /* HIJKLMNO */
-     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, /* PQRSTUVW */
-     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, /* XYZ[\]^_ */
-     0x00, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x00, /* `abcdefg */
-   };
-
-   for (pos = 0; ((pos < (blen*2)) && (pos < XSTRLEN(str))); pos += 2)
-   {
-      idx0 = (uint8_t)(str[pos+0] & 0x1F) ^ 0x10;
-      idx1 = (uint8_t)(str[pos+1] & 0x1F) ^ 0x10;
-      bytes[pos/2] = (uint8_t)(hashmap[idx0] << 4) | hashmap[idx1];
-   }
-}
-
-static void die(int ret)
+static void LTC_NORETURN die(int ret)
 {
    fprintf(stderr, "Usage: aesgcm <-e|-d> <infile> <outfile> <88|96 char hex-string 'IV | key'>\n");
    exit(ret);
@@ -97,9 +77,14 @@ int main(int argc, char **argv)
    uint8_t keybuf[48] = {0};
    char *out = NULL;
    const char *mode, *in_file, *out_file, *key_string;
-   unsigned long ivlen;
+   unsigned long ivlen, key_len;
 
-   if (argc < 5) die(__LINE__);
+   if (argc < 5) {
+      if (argc > 1 && strstr(argv[1], "-h"))
+         die(0);
+      else
+         die(__LINE__);
+   }
 
    arg = 1;
    mode = argv[arg++];
@@ -116,7 +101,11 @@ int main(int argc, char **argv)
    keylen = XSTRLEN(key_string);
    if (keylen != 88 && keylen != 96) die(__LINE__);
 
-   scan_hex(key_string, keybuf, keylen/2);
+   key_len = sizeof(keybuf);
+   if ((err = base16_decode(key_string, keylen, keybuf, &key_len)) != CRYPT_OK) {
+      fprintf(stderr, "boooh %s\n", error_to_string(err));
+      die(__LINE__);
+   }
 
    register_all_ciphers();
 
@@ -148,3 +137,4 @@ cleanup:
 
    return ret;
 }
+#endif
