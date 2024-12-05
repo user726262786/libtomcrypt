@@ -22,12 +22,13 @@ doc/crypt.pdf
 doc/refman.pdf
 
 # *nix/windows test executables
+ltc-*
 aesgcm
 aesgcm.exe
 constants
 constants.exe
-ltcrypt
-ltcrypt.exe
+crypt
+crypt.exe
 hashsum
 hashsum.exe
 multi

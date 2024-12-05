@@ -84,7 +84,7 @@ $(1): $(call print-help,$(1),Builds the library and the '$(1)' demo) demos/$(1).
 ifneq ($V,1)
 	@echo "   * $${CC} $$@" ${silent_echo}
 endif
-	$${silent} $$(CC) $$(LTC_LDFLAGS) $$< $$(LIB_PRE) $$(LIBNAME) $$(LIB_POST) $$(LTC_EXTRALIBS) -o $(1)
+	$${silent} $$(CC) $$(LTC_LDFLAGS) $$< $$(LIB_PRE) $$(LIBNAME) $$(LIB_POST) $$(LTC_EXTRALIBS) -o $$@
 endef
 
 $(foreach demo, $(strip $(DEMOS)), $(eval $(call DEMO_template,$(demo))))
@@ -141,7 +141,3 @@ coverage: $(call print-help,coverage,Create code-coverage of the library - but b
 
 # cleans everything - coverage output and standard 'clean'
 cleancov: cleancov-clean clean
-
-# ref:         $Format:%D$
-# git commit:  $Format:%H$
-# commit time: $Format:%ai$

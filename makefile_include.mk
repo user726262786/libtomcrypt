@@ -82,6 +82,9 @@ endif
 ifneq ($(shell echo $(CFLAGS) | grep TFM_DESC),)
 LTC_CFLAGS+=$(shell PKG_CONFIG_PATH=$(LIBPATH)/pkgconfig pkg-config --cflags-only-I tomsfastmath)
 endif
+ifneq ($(shell echo $(CFLAGS) | grep GMP_DESC),)
+LTC_CFLAGS+=$(shell PKG_CONFIG_PATH=$(LIBPATH)/pkgconfig pkg-config --cflags-only-I gmp)
+endif
 LTC_CFLAGS += -I./src/headers/ -DLTC_SOURCE -Wall -Wsign-compare -Wshadow
 
 ifdef OLD_GCC
@@ -168,7 +171,7 @@ TEST=test
 USEFUL_DEMOS   = hashsum
 
 # Demos that are usable but only rarely make sense to be installed
-USEABLE_DEMOS  = ltcrypt sizes constants pem-info
+USEABLE_DEMOS  = crypt sizes constants pem-info
 
 # Demos that are used for testing or measuring
 TEST_DEMOS     = small tv_gen
@@ -485,7 +488,8 @@ $(DESTDIR)$(BINPATH):
 	install -p -d $(DESTDIR)$(BINPATH)
 
 .common_install_bins: $(USEFUL_DEMOS) $(DESTDIR)$(BINPATH)
-	$(INSTALL_CMD) -p -m 775 $(USEFUL_DEMOS) $(DESTDIR)$(BINPATH)
+	for d in $(USEFUL_DEMOS); do $(INSTALL_CMD) -p -m 775 $$d $(DESTDIR)$(BINPATH)/ltc-$$d
+	$(INSTALL_CMD) -p -m 775 demos/ltc $(DESTDIR)$(BINPATH)
 
 install_docs: $(call print-help,install_docs,Installs the Developer Manual) doc/crypt.pdf
 	install -p -d $(DESTDIR)$(DATAPATH)
@@ -551,7 +555,3 @@ codecheck: $(call print-help,codecheck,Check the code of the library)
 	perlcritic *.pl
 
 help: $(call print-help,help,That's what you're currently looking at)
-
-# ref:         $Format:%D$
-# git commit:  $Format:%H$
-# commit time: $Format:%ai$
