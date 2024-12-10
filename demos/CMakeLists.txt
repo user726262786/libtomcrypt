@@ -2,12 +2,14 @@
 # Options
 # -----------------------------------------------------------------------------
 option(BUILD_USEFUL_DEMOS "Build useful demos (hashsum)" FALSE)
-option(BUILD_USABLE_DEMOS "Build usable demos (crypt sizes constants pem-info)" FALSE)
-option(BUILD_BROKEN_DEMOS "Build broken demos (aesgcm openssh-privkey openssl-enc timing)" FALSE)
+option(
+    BUILD_USABLE_DEMOS
+    "Build usable demos (aesgcm constants crypt openssh-privkey openssl-enc pem-info sizes timing)"
+    FALSE
+)
 option(BUILD_TEST_DEMOS "Build test demos (small tv_gen)" FALSE)
 
 option(INSTALL_DEMOS "Install enabled demos (USEFUL and/or USABLE) and ltc wrapper script" FALSE)
-option(INSTALL_BROKEN_DEMOS "Install broken demos and ltc wrapper script" FALSE)
 
 # -----------------------------------------------------------------------------
 # Useful demos
@@ -26,30 +28,22 @@ endif()
 #
 # Demos that are usable but only rarely make sense to be installed
 #
-# USEABLE_DEMOS  = crypt sizes constants pem-info
+# USEABLE_DEMOS  = aesgcm constants crypt openssh-privkey openssl-enc pem-info sizes timing
 # -----------------------------------------------------------------------------
 
 if(BUILD_USABLE_DEMOS)
-    list(APPEND USABLE_DEMOS_TARGETS crypt sizes constants pem-info)
-endif()
-
-# -----------------------------------------------------------------------------
-# Broken demos
-#
-# Demos that are kind of useful, but in some way broken
-#
-# * aesgcm          - can't be built with LTC_EASY
-# * openssl-enc     - can't be built with LTC_EASY
-# * openssh-privkey - can't be built with LTC_EASY
-# * timing          - not really broken, but older gcc builds spit warnings
-#
-# BROKEN_DEMOS   = aesgcm openssl-enc openssh-privkey timing
-# -----------------------------------------------------------------------------
-
-if(BUILD_BROKEN_DEMOS AND INSTALL_BROKEN_DEMOS)
-    list(APPEND USABLE_DEMOS_TARGETS aesgcm openssh-privkey openssl-enc timing)
-elseif(BUILD_BROKEN_DEMOS)
-    list(APPEND ALL_DEMOS_TARGETS aesgcm openssh-privkey openssl-enc timing)
+    list(
+        APPEND
+        USABLE_DEMOS_TARGETS
+        aesgcm
+        constants
+        crypt
+        openssh-privkey
+        openssl-enc
+        pem-info
+        sizes
+        timing
+    )
 endif()
 
 # -----------------------------------------------------------------------------
