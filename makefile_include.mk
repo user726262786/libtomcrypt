@@ -55,13 +55,13 @@ endif
 
 ifndef EXTRALIBS
 ifneq ($(shell echo $(CFLAGS) | grep USE_LTM),)
-EXTRALIBS=$(shell PKG_CONFIG_PATH=$(LIBPATH)/pkgconfig pkg-config --libs libtommath)
-else
-ifneq ($(shell echo $(CFLAGS) | grep USE_TFM),)
-EXTRALIBS=$(shell PKG_CONFIG_PATH=$(LIBPATH)/pkgconfig pkg-config --libs tomsfastmath)
+EXTRALIBS=$(shell PKG_CONFIG_PATH=$(LIBPATH)/pkgconfig pkg-config --libs libtommath ${silent_stderr} || true)
+else ifneq ($(shell echo $(CFLAGS) | grep USE_TFM),)
+EXTRALIBS=$(shell PKG_CONFIG_PATH=$(LIBPATH)/pkgconfig pkg-config --libs tomsfastmath ${silent_stderr} || true)
+else ifneq ($(shell echo $(CFLAGS) | grep USE_GMP),)
+EXTRALIBS=$(shell PKG_CONFIG_PATH=$(LIBPATH)/pkgconfig pkg-config --libs gmp ${silent_stderr} || true)
 endif
-endif
-endif
+endif # EXTRALIBS
 
 need-help := $(filter help,$(MAKECMDGOALS))
 define print-help
@@ -77,13 +77,13 @@ endef
 #  make CFLAGS="-I./src/headers/ -DLTC_SOURCE ..." ...
 #
 ifneq ($(shell echo $(CFLAGS) | grep LTM_DESC),)
-LTC_CFLAGS+=$(shell PKG_CONFIG_PATH=$(LIBPATH)/pkgconfig pkg-config --cflags-only-I libtommath)
+LTC_CFLAGS+=$(shell PKG_CONFIG_PATH=$(LIBPATH)/pkgconfig pkg-config --cflags-only-I libtommath ${silent_stderr} || true)
 endif
 ifneq ($(shell echo $(CFLAGS) | grep TFM_DESC),)
-LTC_CFLAGS+=$(shell PKG_CONFIG_PATH=$(LIBPATH)/pkgconfig pkg-config --cflags-only-I tomsfastmath)
+LTC_CFLAGS+=$(shell PKG_CONFIG_PATH=$(LIBPATH)/pkgconfig pkg-config --cflags-only-I tomsfastmath ${silent_stderr} || true)
 endif
 ifneq ($(shell echo $(CFLAGS) | grep GMP_DESC),)
-LTC_CFLAGS+=$(shell PKG_CONFIG_PATH=$(LIBPATH)/pkgconfig pkg-config --cflags-only-I gmp)
+LTC_CFLAGS+=$(shell PKG_CONFIG_PATH=$(LIBPATH)/pkgconfig pkg-config --cflags-only-I gmp ${silent_stderr} || true)
 endif
 LTC_CFLAGS += -I./src/headers/ -DLTC_SOURCE -Wall -Wsign-compare -Wshadow
 
