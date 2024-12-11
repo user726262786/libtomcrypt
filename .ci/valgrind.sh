@@ -41,7 +41,3 @@ readonly VALGRIND_EXTRA_OPTS=$(get_suppfile)
 valgrind $VALGRIND_OPTS $VALGRIND_EXTRA_OPTS ./test >test_std.txt 2> >(tee -a test_err.txt >&2) || { kill $alive_pid; echo "Valgrind failed"; exit 1; }
 
 kill $alive_pid
-
-# ref:         $Format:%D$
-# git commit:  $Format:%H$
-# commit time: $Format:%ai$

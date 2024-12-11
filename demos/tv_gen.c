@@ -11,7 +11,8 @@ static void hash_gen(void)
 
    out = fopen("hash_tv.txt", "w");
    if (out == NULL) {
-      perror("can't open hash_tv");
+      perror("can't open hash_tv.txt");
+      return;
    }
 
    fprintf(out, "Hash Test Vectors:\n\nThese are the hashes of nn bytes '00 01 02 03 .. (nn-1)'\n\n");
@@ -766,8 +767,26 @@ static void lrw_gen(void)
 }
 #endif
 
-int main(void)
+static void LTC_NORETURN die(int status)
 {
+   FILE* o = status == EXIT_SUCCESS ? stdout : stderr;
+   fprintf(o,
+         "Usage: tv_gen [<-h>]\n\n"
+         "Generate the internal test-vectors.\n\n"
+         "\t-h\tThe help you're looking at.\n"
+   );
+   exit(status);
+}
+
+int main(int argc, char **argv)
+{
+   if (argc > 1) {
+      if (strstr(argv[1], "-h")) {
+         die(EXIT_SUCCESS);
+      } else {
+         die(EXIT_FAILURE);
+      }
+   }
    register_all_ciphers();
    register_all_hashes();
    register_all_prngs();

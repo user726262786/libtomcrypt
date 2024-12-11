@@ -45,7 +45,3 @@ portability-* -- -DUSE_LTM -DLTM_DESC -Isrc/headers -I../libtommath || { echo "c
 echo "clang-tidy ok"
 
 exit 0
-
-# ref:         $Format:%D$
-# git commit:  $Format:%H$
-# commit time: $Format:%ai$

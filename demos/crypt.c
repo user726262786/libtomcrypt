@@ -12,17 +12,29 @@
 
 #include <tomcrypt.h>
 
-static int LTC_NORETURN usage(char *name)
+static int LTC_NORETURN die(int status)
 {
-   int x;
-
-   printf("Usage encrypt: %s cipher infile outfile\n", name);
-   printf("Usage decrypt: %s -d cipher infile outfile\n", name);
-   printf("Usage test:    %s -t cipher\nCiphers:\n", name);
+   int x, w, tot = 0;
+   FILE* o = status == EXIT_SUCCESS ? stdout : stderr;
+   fprintf(o,
+           "Usage encrypt: crypt <cipher> <infile> <outfile>\n"
+           "Usage decrypt: crypt -d <cipher> <infile> <outfile>\n"
+           "Usage test:    crypt -t <cipher>\n"
+           "This help:     crypt -h\n\nCiphers:\n\t");
    for (x = 0; cipher_descriptor[x].name != NULL; x++) {
-      printf("%s\n",cipher_descriptor[x].name);
+      w = fprintf(o, "%-14s",cipher_descriptor[x].name);
+      if (w < 0) {
+         status = EXIT_FAILURE;
+         break;
+      }
+      tot += w;
+      if (tot >= 70) {
+         fprintf(o, "\n\t");
+         tot = 0;
+      }
    }
-   exit(1);
+   if (tot != 0) fprintf(o, "\n");
+   exit(status);
 }
 
 int main(int argc, char *argv[])
@@ -48,24 +60,24 @@ int main(int argc, char *argv[])
         cipher  = argv[2];
         cipher_idx = find_cipher(cipher);
         if (cipher_idx == -1) {
-          printf("Invalid cipher %s entered on command line.\n", cipher);
-          exit(-1);
+          fprintf(stderr, "Invalid cipher %s entered on command line.\n", cipher);
+          die(EXIT_FAILURE);
         } /* if */
-        if (cipher_descriptor[cipher_idx].test)
-        {
-          if (cipher_descriptor[cipher_idx].test() != CRYPT_OK)
-          {
-            printf("Error when testing cipher %s.\n", cipher);
-            exit(-1);
+        if (cipher_descriptor[cipher_idx].test) {
+          if (cipher_descriptor[cipher_idx].test() != CRYPT_OK) {
+            fprintf(stderr, "Error when testing cipher %s.\n", cipher);
+            die(EXIT_FAILURE);
           }
-          else
-          {
+          else {
             printf("Testing cipher %s succeeded.\n", cipher);
-            exit(0);
-          } /* if ... else */
-        } /* if */
+            exit(EXIT_SUCCESS);
+          }
+        } else {
+          fprintf(stderr, "Cipher %s has no tests.\n", cipher);
+          exit(EXIT_SUCCESS);
+        }
       }
-      return usage(argv[0]);
+      return die(argc > 1 && strstr(argv[1], "-h") != NULL ? EXIT_SUCCESS : EXIT_FAILURE);
    }
 
    if (!strcmp(argv[1], "-d")) {

@@ -110,7 +110,3 @@ echo
 echo "Build full debug..."
 
 make -j$MAKE_JOBS CFLAGS="$2 $CFLAGS $4" EXTRALIBS="$EXTRALIBS" all_test LTC_DEBUG=2 V=1 1>gcc_1.txt 2>gcc_2.txt
-
-# ref:         $Format:%D$
-# git commit:  $Format:%H$
-# commit time: $Format:%ai$

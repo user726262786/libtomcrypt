@@ -69,9 +69,23 @@ static const char *s_map_mode(enum cipher_mode mode)
    exit(1);
 }
 
-int main(void)
+
+static void LTC_NORETURN die(int status)
+{
+   FILE* o = status == EXIT_SUCCESS ? stdout : stderr;
+   fprintf(o,
+         "Usage: pem-info [<-h>]\n\n"
+         "Generate LaTeX tables from the supported PEM resp. SSH ciphers.\n\n"
+         "\t-h\tThe help you're looking at.\n"
+   );
+   exit(status);
+}
+
+int main(int argc, char **argv)
 {
    unsigned long n;
+   if (argc > 1 && strstr(argv[1], "-h"))
+      die(0);
    printf("PEM ciphers:\n\n");
    for (n = 0; n < pem_dek_infos_num; ++n) {
       char nbuf[32] = {0};

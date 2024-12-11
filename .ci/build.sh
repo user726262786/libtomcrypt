@@ -69,7 +69,3 @@ if [ -a testok.txt ] && [ -f testok.txt ]; then
    exit 0
 fi
 exit 1
-
-# ref:         $Format:%D$
-# git commit:  $Format:%H$
-# commit time: $Format:%ai$

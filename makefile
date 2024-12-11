@@ -13,9 +13,11 @@ endif
 ifeq ($V,1)
 silent=
 silent_stdout=
+silent_stderr=
 else
 silent=@
 silent_stdout= > /dev/null
+silent_stderr= 2> /dev/null
 endif
 
 PLATFORM := $(shell uname | sed -e 's/_.*//')

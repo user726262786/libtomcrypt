@@ -24,8 +24,6 @@
  * - OpenSSL-compatible key derivation (in OpenSSL's modified PKCS#5v1 approach)
  * - Grabbing an Initialization Vector from the key generator
  * - Performing simple block encryption using AES
- * - PKCS#7-type padding (which hopefully can get ripped out of this demo and
- *   made a libtomcrypt thing someday).
  *
  * This program is free for all purposes without any express guarantee it
  * works. If you really want to see a license here, assume the WTFPL :-)
@@ -38,22 +36,14 @@
  */
 
 #include <tomcrypt.h>
+#include <termios.h>
 
-#ifndef LTC_RIJNDAEL
-#error Cannot compile this demo; Rijndael (AES) required
-#endif
-#ifndef LTC_CBC_MODE
-#error Cannot compile this demo; CBC mode required
-#endif
-#ifndef LTC_PKCS_5
-#error Cannot compile this demo; PKCS5 required
-#endif
-#ifndef LTC_RNG_GET_BYTES
-#error Cannot compile this demo; random generator required
-#endif
-#ifndef LTC_MD5
-#error Cannot compile this demo; MD5 required
-#endif
+#if !defined(LTC_RIJNDAEL) || !defined(LTC_CBC_MODE) || !defined(LTC_PKCS_5) || !defined(LTC_RNG_GET_BYTES) || !defined(LTC_MD5)
+int main(void)
+{
+   return -1;
+}
+#else
 
 /* OpenSSL by default only runs one hash round */
 #define OPENSSL_ITERATIONS 1
@@ -83,44 +73,33 @@ union paddable {
  * Output:       <no return>
  * Side Effects: print messages and barf (does exit(3))
  */
-void barf(const char *pname, const char *err)
+static void LTC_NORETURN barf(const char *pname, const char *err)
 {
-   printf("Usage: %s <enc|dec> infile outfile passphrase [salt]\n", pname);
-   printf("\n");
-   printf("       # encrypts infile->outfile, random salt\n");
-   printf("       %s enc infile outfile \"passphrase\"\n", pname);
-   printf("\n");
-   printf("       # encrypts infile->outfile, salt from cmdline\n");
-   printf("       %s enc infile outfile pass 0123456789abcdef\n", pname);
-   printf("\n");
-   printf("       # decrypts infile->outfile, pulls salt from infile\n");
-   printf("       %s dec infile outfile pass\n", pname);
-   printf("\n");
-   printf("       # decrypts infile->outfile, salt specified\n");
-   printf("       # (don't try to read the salt from infile)\n");
-   printf("       %s dec infile outfile pass 0123456789abcdef"
-          "\n", pname);
-   printf("\n");
-   printf("Application Error: %s\n", err);
+   FILE* o = err == NULL ? stdout : stderr;
+   fprintf(o,
+            "Usage: %s <enc|dec> infile outfile [passphrase | -] [salt]\n"
+            "\n"
+            "       The passphrase can either be given at the command line\n"
+            "       or if it's passed as '-' it will be read interactively.\n"
+            "\n"
+            "       # encrypts infile->outfile, random salt\n"
+            "       %s enc infile outfile pass\n"
+            "\n"
+            "       # encrypts infile->outfile, salt from cmdline\n"
+            "       %s enc infile outfile pass 0123456789abcdef\n"
+            "\n"
+            "       # decrypts infile->outfile, pulls salt from infile\n"
+            "       %s dec infile outfile pass\n"
+            "\n"
+            "       # decrypts infile->outfile, salt specified\n"
+            "       # (don't try to read the salt from infile)\n"
+            "       %s dec infile outfile pass 0123456789abcdef\n"
+            "\n"
+            "Application Error: %s\n", pname, pname, pname, pname, pname, err ? err : "None");
    if(errno)
-      perror("     System Error");
-   exit(-1);
-}
-
-/*
- * Parse a salt value passed in on the cmdline.
- *
- * Input:        string passed in and a buf to put it in (exactly 8 bytes!)
- * Output:       CRYPT_OK if parsed OK, CRYPT_ERROR if not
- * Side Effects: none
- */
-int parse_hex_salt(unsigned char *in, unsigned char *out)
-{
-   int idx;
-   for(idx=0; idx<SALT_LENGTH; idx++)
-      if(sscanf((char*)in+idx*2, "%02hhx", out+idx) != 1)
-         return CRYPT_ERROR;
-   return CRYPT_OK;
+      perror(
+            "     System Error");
+   exit(err == NULL ? 0 : -1);
 }
 
 /*
@@ -259,8 +238,39 @@ int do_crypt(FILE *infd, FILE *outfd, unsigned char *key, unsigned char *iv,
    return CRYPT_OK;
 }
 
+
+static char* getpassword(const char *prompt, size_t maxlen)
+{
+   char *wr, *end, *pass = XCALLOC(1, maxlen + 1);
+   struct termios tio;
+   tcflag_t c_lflag;
+   if (pass == NULL)
+      return NULL;
+   wr = pass;
+   end = pass + maxlen;
+
+   tcgetattr(0, &tio);
+   c_lflag = tio.c_lflag;
+   tio.c_lflag &= ~ECHO;
+   tcsetattr(0, TCSANOW, &tio);
+
+   printf("%s", prompt);
+   fflush(stdout);
+   while (pass < end) {
+      int c = getchar();
+      if (c == '\r' || c == '\n' || c == -1)
+         break;
+      *wr++ = c;
+   }
+   tio.c_lflag = c_lflag;
+   tcsetattr(0, TCSAFLUSH, &tio);
+   printf("\n");
+   return pass;
+}
+
 /* Convenience macro for the various barfable places below */
 #define BARF(a) { \
+   if(password) free(password); \
    if(infd) fclose(infd); \
    if(outfd) { fclose(outfd); remove(argv[3]); } \
    barf(argv[0], a); \
@@ -278,6 +288,12 @@ int main(int argc, char *argv[]) {
    unsigned char keyiv[KEY_LENGTH + IV_LENGTH];
    unsigned long keyivlen = (KEY_LENGTH + IV_LENGTH);
    unsigned char *key, *iv;
+   const void *pass;
+   char *password = NULL;
+   unsigned long saltlen = sizeof(salt);
+
+   if (argc > 1 && strstr(argv[1], "-h"))
+      barf(argv[0], NULL);
 
    /* Check proper number of cmdline args */
    if(argc < 5 || argc > 6)
@@ -302,9 +318,9 @@ int main(int argc, char *argv[]) {
    /* Get the salt from wherever */
    if(argc == 6) {
       /* User-provided */
-      if(parse_hex_salt((unsigned char*) argv[5], salt) != CRYPT_OK)
+      if(base16_decode(argv[5], strlen(argv[5]), salt, &saltlen) != CRYPT_OK)
          BARF("Bad user-specified salt");
-   } else if(!strncmp(argv[1], "enc", 3)) {
+   } else if(encrypt) {
       /* Encrypting; get from RNG */
       if(rng_get_bytes(salt, sizeof(salt), NULL) != sizeof(salt))
          BARF("Not enough random data");
@@ -324,9 +340,18 @@ int main(int argc, char *argv[]) {
    key = keyiv + 0;      /* key comes first */
    iv = keyiv + KEY_LENGTH;   /* iv comes next */
 
+   if (argv[4] && strcmp(argv[4], "-")) {
+      pass = argv[4];
+   } else {
+      password = getpassword("Enter password: ", 256);
+      if (!password)
+         BARF("Could not get password");
+      pass = password;
+   }
+
    /* Run the key derivation from the provided passphrase.  This gets us
       the key and iv. */
-   ret = pkcs_5_alg1_openssl((unsigned char*)argv[4], XSTRLEN(argv[4]), salt,
+   ret = pkcs_5_alg1_openssl(pass, XSTRLEN(pass), salt,
                              OPENSSL_ITERATIONS, hash, keyiv, &keyivlen );
    if(ret != CRYPT_OK)
       BARF("Could not derive key/iv from passphrase");
@@ -353,6 +378,8 @@ int main(int argc, char *argv[]) {
       BARF("Error during crypt operation");
 
    /* Clean up */
+   if(password) free(password);
    fclose(infd); fclose(outfd);
    return 0;
 }
+#endif
