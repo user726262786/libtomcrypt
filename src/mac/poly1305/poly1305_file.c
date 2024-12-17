@@ -44,7 +44,7 @@ int poly1305_file(const char *fname, const unsigned char *key, unsigned long key
       return CRYPT_MEM;
    }
 
-   if ((err = poly1305_init(&st, key, keylen)) != CRYPT_OK) {
+   if ((err = libtom_poly1305_init(&st, key, keylen)) != CRYPT_OK) {
       goto LBL_ERR;
    }
 

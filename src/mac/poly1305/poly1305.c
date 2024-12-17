@@ -80,7 +80,7 @@ static void s_poly1305_block(poly1305_state *st, const unsigned char *in, unsign
    @param keylen   The length of the secret key (octets)
    @return CRYPT_OK if successful
 */
-int poly1305_init(poly1305_state *st, const unsigned char *key, unsigned long keylen)
+int libtom_poly1305_init(poly1305_state *st, const unsigned char *key, unsigned long keylen)
 {
    LTC_ARGCHK(st  != NULL);
    LTC_ARGCHK(key != NULL);

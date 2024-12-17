@@ -325,7 +325,7 @@ extern const struct ltc_hash_descriptor sha384_desc;
 #ifndef LTC_SHA512
    #error LTC_SHA512 is required for LTC_SHA512_256
 #endif
-int sha512_256_init(hash_state * md);
+int libtom_sha512_256_init(hash_state * md);
 #define sha512_256_process sha512_process
 int sha512_256_done(hash_state * md, unsigned char *out);
 int sha512_256_test(void);
@@ -336,7 +336,7 @@ extern const struct ltc_hash_descriptor sha512_256_desc;
 #ifndef LTC_SHA512
    #error LTC_SHA512 is required for LTC_SHA512_224
 #endif
-int sha512_224_init(hash_state * md);
+int libtom_sha512_224_init(hash_state * md);
 #define sha512_224_process sha512_process
 int sha512_224_done(hash_state * md, unsigned char *out);
 int sha512_224_test(void);

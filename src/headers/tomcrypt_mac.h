@@ -111,7 +111,7 @@ typedef struct {
    int final;
 } poly1305_state;
 
-int poly1305_init(poly1305_state *st, const unsigned char *key, unsigned long keylen);
+int libtom_poly1305_init(poly1305_state *st, const unsigned char *key, unsigned long keylen);
 int poly1305_process(poly1305_state *st, const unsigned char *in, unsigned long inlen);
 int poly1305_done(poly1305_state *st, unsigned char *mac, unsigned long *maclen);
 int poly1305_memory(const unsigned char *key, unsigned long keylen, const unsigned char *in, unsigned long inlen, unsigned char *mac, unsigned long *maclen);

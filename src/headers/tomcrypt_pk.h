@@ -325,8 +325,10 @@ int ecc_import_openssl(const unsigned char *in, unsigned long inlen, ecc_key *ke
 int ecc_import_pkcs8(const unsigned char *in, unsigned long inlen, const password_ctx *pw_ctx, ecc_key *key);
 int ecc_import_x509(const unsigned char *in, unsigned long inlen, ecc_key *key);
 
-int  ecc_shared_secret(const ecc_key *private_key, const ecc_key *public_key,
-                       unsigned char *out, unsigned long *outlen);
+int  ecc_shared_secret_x(const ecc_key *private_key, const ecc_key *public_key, unsigned char *out,
+                         unsigned long *outlen);
+int  ecc_shared_secret_y(const ecc_key *private_key, const ecc_key *public_key, unsigned char *out,
+                         unsigned long *outlen);
 
 int  ecc_encrypt_key(const unsigned char *in,   unsigned long inlen,
                            unsigned char *out,  unsigned long *outlen,

@@ -38,7 +38,7 @@ int poly1305_memory_multi(const unsigned char *key, unsigned long keylen, unsign
    va_start(args, inlen);
    curptr = in;
    curlen = inlen;
-   if ((err = poly1305_init(&st, key, keylen)) != CRYPT_OK)          { goto LBL_ERR; }
+   if ((err = libtom_poly1305_init(&st, key, keylen)) != CRYPT_OK)          { goto LBL_ERR; }
    for (;;) {
       if ((err = poly1305_process(&st, curptr, curlen)) != CRYPT_OK) { goto LBL_ERR; }
       curptr = va_arg(args, const unsigned char*);

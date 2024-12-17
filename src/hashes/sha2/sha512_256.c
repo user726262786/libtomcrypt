@@ -20,7 +20,7 @@ const struct ltc_hash_descriptor sha512_256_desc =
    { 2, 16, 840, 1, 101, 3, 4, 2, 6,  },
    9,
 
-    &sha512_256_init,
+    &libtom_sha512_256_init,
     &sha512_process,
     &sha512_256_done,
     &sha512_256_test,
@@ -32,7 +32,7 @@ const struct ltc_hash_descriptor sha512_256_desc =
    @param md   The hash state you wish to initialize
    @return CRYPT_OK if successful
 */
-int sha512_256_init(hash_state * md)
+int libtom_sha512_256_init(hash_state * md)
 {
     LTC_ARGCHK(md != NULL);
 

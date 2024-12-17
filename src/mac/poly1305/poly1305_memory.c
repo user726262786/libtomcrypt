@@ -30,7 +30,7 @@ int poly1305_memory(const unsigned char *key, unsigned long keylen, const unsign
    LTC_ARGCHK(mac    != NULL);
    LTC_ARGCHK(maclen != NULL);
 
-   if ((err = poly1305_init(&st, key, keylen))  != CRYPT_OK) { goto LBL_ERR; }
+   if ((err = libtom_poly1305_init(&st, key, keylen))  != CRYPT_OK) { goto LBL_ERR; }
    if ((err = poly1305_process(&st, in, inlen)) != CRYPT_OK) { goto LBL_ERR; }
    err = poly1305_done(&st, mac, maclen);
 LBL_ERR:

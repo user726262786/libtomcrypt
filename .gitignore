@@ -114,3 +114,4 @@ libtomcrypt.lzma
 
 # cmake build directories
 build*/
+/.vs/libtomcrypt_VS2008

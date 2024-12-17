@@ -47,7 +47,7 @@ int chacha20poly1305_setiv(chacha20poly1305_state *st, const unsigned char *iv, 
    /* (re)generate new poly1305 key */
    if ((err = chacha_keystream(&tmp_st, polykey, 32)) != CRYPT_OK) return err;
    /* (re)initialise poly1305 */
-   if ((err = poly1305_init(&st->poly, polykey, 32)) != CRYPT_OK) return err;
+   if ((err = libtom_poly1305_init(&st->poly, polykey, 32)) != CRYPT_OK) return err;
    st->ctlen  = 0;
    st->aadlen = 0;
    st->aadflg = 1;
